@@ -1,5 +1,3 @@
-using CUDAdrv, CUDAnative
-
 # The number of sample points in each ellipse (stencil)
 const NPOINTS = 150
 # The maximum radius of a sample ellipse
@@ -95,7 +93,7 @@ function GICOV_CUDA(host_grad_x, host_grad_y, GICOV_constants)
 
     # Allocate & initialize device memory for result
     # (some elements are not assigned values in the kernel)
-    device_gicov_out = CuArray{Float32}(size(device_grad_x,1),size(device_grad_y,2))
+    device_gicov_out = CuArray{Float32}(undef, size(device_grad_x,1),size(device_grad_y,2))
 
     # Setup execution parameters
     num_blocks = size(host_grad_y,2) - (2 * MaxR)
@@ -165,7 +163,7 @@ end
 function dilate_CUDA(img_in, GICOV_constants)
     # TODO: should be put in texture memory
     img_dev = CuArray(img_in)
-    dilated_out = CuArray{Float32}((size(img_in,1),size(img_in,2)))
+    dilated_out = CuArray{Float32}(undef, (size(img_in,1),size(img_in,2)))
 
     num_threads = size(img_in,1) * size(img_in,2)
     threads_per_block = 176

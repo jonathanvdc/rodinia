@@ -1,8 +1,6 @@
 const BLOCK_SIZE = 16
 const MATRIX_SIZE = BLOCK_SIZE * BLOCK_SIZE
 
-using CUDAdrv, CUDAnative
-
 function lud_diagonal(matrix, offset)
     shadow = @cuStaticSharedMem(Float32, (BLOCK_SIZE,BLOCK_SIZE))
 

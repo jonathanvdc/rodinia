@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-using CUDAdrv, CUDAnative, NVTX
+include("../../common/julia/cudanative.jl")
 
 include("../../common/julia/crand.jl")
 const rng = LibcRNG()
@@ -151,7 +151,7 @@ function main(args)
     # Setup GPU memory
     gpu_result = Vector{CuArray{Int32,1}}(undef, 2)
     gpu_result[1] = CuArray(wall[:,1])
-    gpu_result[2] = CuArray{Int32}(cols)
+    gpu_result[2] = CuArray{Int32}(undef, cols)
 
     gpu_wall = CuArray(wall[cols+1:end])
 

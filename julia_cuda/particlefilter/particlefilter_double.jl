@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-using CUDAdrv, CUDAnative, NVTX
+include("../../common/julia/cudanative.jl")
 
 const OUTPUT = haskey(ENV, "OUTPUT")
 
@@ -388,16 +388,16 @@ function particlefilter(I::Array{UInt8}, IszX, IszY, Nfr, seed::Array{Int32}, Np
     end
 
     # Initial likelihood to 0.0
-    g_likelihood = CuArray{Float64}(Nparticles)
-    g_arrayX = CuArray{Float64}(Nparticles)
-    g_arrayY = CuArray{Float64}(Nparticles)
+    g_likelihood = CuArray{Float64}(undef, Nparticles)
+    g_arrayX = CuArray{Float64}(undef, Nparticles)
+    g_arrayY = CuArray{Float64}(undef, Nparticles)
     xj = Vector{Float64}(undef, Nparticles)
     yj = Vector{Float64}(undef, Nparticles)
-    g_CDF = CuArray{Float64}(Nparticles)
+    g_CDF = CuArray{Float64}(undef, Nparticles)
 
-    g_ind = CuArray{Int}(count_ones * Nparticles)
-    g_u = CuArray{Float64}(Nparticles)
-    g_partial_sums = CuArray{Float64}(Nparticles)
+    g_ind = CuArray{Int}(undef, count_ones * Nparticles)
+    g_u = CuArray{Float64}(undef, Nparticles)
+    g_partial_sums = CuArray{Float64}(undef, Nparticles)
 
     for x=1:Nparticles
         xj[x] = xe

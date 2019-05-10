@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-using CUDAdrv, CUDAnative, NVTX
+include("../../common/julia/cudanative.jl")
 
 # Variables
 
@@ -249,12 +249,12 @@ function particlefilter(I::Array{UInt8}, IszX, IszY, Nfr, seed, Nparticles)
         arrayY[x] = ye
     end
 
-    g_arrayX = CuArray{Float64}(Nparticles)
-    g_arrayY = CuArray{Float64}(Nparticles)
-    g_xj = CuArray{Float64}(Nparticles)
-    g_yj = CuArray{Float64}(Nparticles)
-    g_CDF = CuArray{Float64}(Nparticles)
-    g_u = CuArray{Float64}(Nparticles)
+    g_arrayX = CuArray{Float64}(undef, Nparticles)
+    g_arrayY = CuArray{Float64}(undef, Nparticles)
+    g_xj = CuArray{Float64}(undef, Nparticles)
+    g_yj = CuArray{Float64}(undef, Nparticles)
+    g_CDF = CuArray{Float64}(undef, Nparticles)
+    g_u = CuArray{Float64}(undef, Nparticles)
 
     for k=2:Nfr
         set_arrays = gettime()

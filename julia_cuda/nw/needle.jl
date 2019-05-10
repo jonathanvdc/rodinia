@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-using CUDAdrv, CUDAnative, NVTX
+include("../../common/julia/cudanative.jl")
 using LLVM
 
 using Printf

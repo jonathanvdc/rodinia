@@ -1,8 +1,5 @@
 include("streamcluster_header.jl")
 
-using CUDAdrv
-using CUDAnative
-
 const THREADS_PER_BLOCK = 512
 const MAXBLOCKS = 65536
 
@@ -121,9 +118,9 @@ function pgain(x, points, z, numcenters, kmax, is_center, center_table,
     p_ad = CuArray(p_a)
     p_cd = CuArray(p_c)
 
-    work_mem_d = CuArray{Float32}(stride * (nThread + 1))
+    work_mem_d = CuArray{Float32}(undef, stride * (nThread + 1))
     Mem.set!(work_mem_d.buf, UInt8(0), sizeof(work_mem_d)) # FIXME: needs wrapper
-    switch_membership_d = CuArray{Bool}(num)
+    switch_membership_d = CuArray{Bool}(undef, num)
     Mem.set!(switch_membership_d.buf, UInt8(0), sizeof(switch_membership_d)) # FIXME: needs wrapper
 
     #=======================================#

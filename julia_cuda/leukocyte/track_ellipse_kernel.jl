@@ -1,5 +1,3 @@
-using CUDAdrv, CUDAnative
-
 # The number of threads per thread block
 const threads_per_block = 320
 # next_lowest_power_of_two = 2^(floor(log2(threads_per_block)))

@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-using CUDAdrv, CUDAnative, NVTX
+include("../../common/julia/cudanative.jl")
 
 using Printf
 
@@ -74,7 +74,7 @@ function main(args)
 
     # Allocate memory on device and copy data from host to device.
     d_locations = CuArray(locations)
-    d_distances = CuArray{Float32}(numRecords)
+    d_distances = CuArray{Float32}(undef, numRecords)
 
     # Execute kernel. There will be no more than (gridY - 1) extra blocks.
     @cuda blocks=(gridX, gridY) threads=threadsPerBlock euclid(

@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-using CUDAdrv, CUDAnative, NVTX
+include("../../common/julia/cudanative.jl")
 
 using Printf
 
@@ -242,7 +242,7 @@ function main(args)
 
     MatrixTemp = Array{CuArray{Float32,1}}(undef, 2)
     MatrixTemp[1] = CuArray(FilesavingTemp)
-    MatrixTemp[2] = CuArray{Float32}(size)
+    MatrixTemp[2] = CuArray{Float32}(undef, size)
     MatrixPower = CuArray(FilesavingPower)
 
     println("Start computing the transient temperature")

@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-using CUDAdrv, CUDAnative, NVTX
+include("../../common/julia/cudanative.jl")
 
 const OUTPUT = haskey(ENV, "OUTPUT")
 
@@ -125,7 +125,7 @@ function main(args)
     g_updating_graph_mask = CuArray(h_updating_graph_mask)
     g_graph_visited = CuArray(h_graph_visited)
     g_cost = CuArray(h_cost)
-    g_stop = CuArray{Bool}(1)
+    g_stop = CuArray{Bool}(undef, 1)
 
     k = 0
     println("Start traversing the tree")
