@@ -1,7 +1,7 @@
 using DataFrames, CSV
 using Measurements, Statistics
 
-const suites = ["cuda", "julia_cuda"]   # which benchmark suites to process
+const suites = ["julia_cuda"]   # which benchmark suites to process
 const baseline = "cuda"
 const non_baseline = filter(suite->suite!=baseline, suites)
 const root = dirname(@__DIR__)
@@ -33,12 +33,12 @@ function summarize(measurements)
     # first, sum timings of identical kernels within an execution
     # (or the sum of all device timings within an execution wouldn't be correct,
     # after taking the average below)
-    grouped = by(measurements, [:suite, :benchmark, :target, :execution],
+    grouped = by(measurements, [:suite, :benchmark, :target, :config, :execution],
                  df->DataFrame(time = sum(df[:time]),
                                target_iterations = length(df[:time])))
 
     # next, take the average across all executions
-    grouped = by(grouped, [:suite, :benchmark, :target],
+    grouped = by(grouped, [:suite, :benchmark, :target, :config],
                  df->DataFrame(time = measurement(mean(df[:time]), std(df[:time])),
                                target_iterations = allequal(df[:target_iterations]),
                                benchmark_iterations = length(df[:time])))

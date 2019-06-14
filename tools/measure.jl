@@ -89,7 +89,7 @@ function read_data(output_path)
                         "Correlation_ID"        => Union{Missing,Int}))
 end
 
-function process_data(raw_data, suite, benchmark)
+function process_data(raw_data, suite, benchmark, gc_config)
     # extract kernel timings
     kernel_data = filter(entry -> begin
             !(startswith(entry[:Name], "cu") && ismissing(entry[:Device])) &&
@@ -133,6 +133,7 @@ function process_data(raw_data, suite, benchmark)
     rows = size(kernel_data, 1)
     data = DataFrame(suite = suite,
                      benchmark = benchmark,
+                     config = gc_config,
                      target = kernel_data[:Name],
                      time = kernel_data[:Duration])
 
@@ -143,7 +144,7 @@ function process_data(raw_data, suite, benchmark)
     # +        main(ARGS)
     # +        ccall(:jl_dump_compiles, Nothing, (Ptr{Cvoid},), C_NULL)
     # +    end
-    if suite == "julia_cuda"
+    if false && suite == "julia_cuda"
         compiles = joinpath(root, suite, benchmark, "compiles.dat")
         # measure everything that's defined in Main (modules can be precompiled)
         # except for kernels (already contained in the CUDAnative timings)
@@ -207,9 +208,13 @@ function measure(host=gethostname())
     common_benchmarks = intersect(values(benchmarks)...)
 
     # collect measurements
-    measurements = DataFrame(suite=String[], benchmark=String[], target=String[],
+    measurements = DataFrame(suite=String[], benchmark=String[], config=String[], target=String[],
                              time=Float64[], execution=Int64[])
     for suite in suites, benchmark in common_benchmarks
+        if benchmark == "hotspot" || benchmark == "nn"
+            continue
+        end
+
         @info "Processing $suite/$benchmark"
         dir = joinpath(root, suite, benchmark)
         cache_path = joinpath(dir, "profile_$host.csv")
@@ -226,28 +231,43 @@ function measure(host=gethostname())
         end
 
         if data == nothing
-            iter = 1
-            t0 = time()
-            data = nothing
-            while true
-                new_data = process_data(run_benchmark(dir), suite, benchmark)
-                new_data[:execution] = iter
-                iter += 1
+            for gc_config in ["BUMP", "NAIVE", "NONE", "OPT"]
+                @info "Processing GC configuration '$gc_config'"
 
-                if data == nothing
-                    data = new_data
+                if gc_config == "NONE"
+                    if haskey(ENV, "JULIA_GC")
+                        delete!(ENV, "JULIA_GC")
+                    end
                 else
-                    data = vcat(data, new_data)
+                    ENV["JULIA_GC"] = gc_config
                 end
 
-                is_accurate(data)                    && break
-                iter >= MAX_BENCHMARK_RUNS           && break
-                (time()-t0) >= MAX_BENCHMARK_SECONDS && break
-            end
+                iter = 1
+                t0 = time()
+                local_data = nothing
+                while true
+                    new_data = process_data(run_benchmark(dir), suite, benchmark, gc_config)
+                    new_data[:execution] = iter
+                    iter += 1
 
+                    if local_data == nothing
+                        local_data = new_data
+                    else
+                        local_data = vcat(local_data, new_data)
+                    end
+
+                    is_accurate(local_data)              && break
+                    iter >= MAX_BENCHMARK_RUNS           && break
+                    (time()-t0) >= MAX_BENCHMARK_SECONDS && break
+                end
+                if data == nothing
+                    data = local_data
+                else
+                    data = vcat(data, local_data)
+                end
+            end
             CSV.write(cache_path, data)
         end
-
         measurements = vcat(measurements, data)
     end
 
