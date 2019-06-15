@@ -6,10 +6,10 @@ measure(host)
 data = summarize(CSV.read("measurements_$host.dat"))
 data = filter(d -> d[:target] != "#host", data)
 data = by(data, [:suite, :benchmark, :config]) do df
-    sums = by(df, [:target]) do d
-        DataFrame(time = sum(d[:time]))
+    mins = by(df, [:target]) do d
+        DataFrame(time = minimum(d[:time]))
     end
-    DataFrame(time = median(sums[:time]))
+    DataFrame(time = sum(mins[:time]))
 end
 data = by(data, [:suite, :benchmark]) do df
     function get_result(name)
